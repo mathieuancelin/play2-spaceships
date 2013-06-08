@@ -48,24 +48,32 @@ object Application extends Controller {
       Ok
     }
 
+    def resetGame() = {
+      val oldGame = currentGame
+      currentGame.map { game =>
+        game.stop()
+      }
+      currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
+      playersChannel.push(Json.obj("action" -> "restart"))
+      oldGame.map { game =>
+        Game.resetPlayers(game)
+      }
+      padCounterFire.set(0)
+      padCounterMoves.set(0)
+      start.set(System.currentTimeMillis())
+    }
+
     def restartGame() = Action {
-        val oldGame = currentGame
-        currentGame.map { game =>
-            game.stop()
-        }
-        currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
-        playersChannel.push(Json.obj("action" -> "restart"))
-        oldGame.map { game =>
-            Game.resetPlayers(game)
-        }
-        padCounterFire.set(0)
-        padCounterMoves.set(0)
-        start.set(System.currentTimeMillis())
-        Ok
+      resetGame()
+      Ok
     }
 
     def index() = Action { implicit request =>
         Ok( views.html.board() )    
+    }
+
+    def resetIndex() = Action { implicit request =>
+      Ok( views.html.board() )
     }
 
     def mobileStart() = Action { implicit request =>
