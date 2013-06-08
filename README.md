@@ -1,10 +1,9 @@
 Play 2 SpaceShips!
 =====================================
 
-Require:  Play 2.1.1
--------------------------------------
+<b>Require:  Play 2.1.1</b>
 
-Author: Mathieu Ancelin - SERLI
+<b>Author:</b> Mathieu Ancelin - SERLI
 
 - From your laptop, start the play application
 - Open one (or many) web browser to http://{host}:{port}/ to display the game board
