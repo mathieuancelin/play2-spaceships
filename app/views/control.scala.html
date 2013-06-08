@@ -93,7 +93,7 @@
                 websocketCapable = false
             } else {
                 var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-                socket = new WS( "ws://" + location.host + "/mobile/@username/stream " )
+                socket = new WS( "ws://" + location.host + "/m/@username/stream " )
                 socket.onmessage = function( event ) {
                     var sent = JSON.parse( event.data )
                     if (sent.action == "kill") {

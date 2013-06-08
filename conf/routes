@@ -4,16 +4,20 @@
 
 # Home page
 GET     /                               controllers.Application.index()
-GET     /mobile                         controllers.Application.mobileStart()
 GET     /m                              controllers.Application.mobileStart()
-POST    /mobile/start                   controllers.Application.startGame()
-GET     /mobile/:username/pad           controllers.Application.mobilePad( username )
 GET     /m/:username/p                  controllers.Application.mobilePad( username )
-GET     /mobile/:username/stream        controllers.Application.mobilePadStream( username )
+GET     /m/:username/stream             controllers.Application.mobilePadStream( username )
 GET     /game/players                   controllers.Application.playersSSE()
 GET     /game/bullets                   controllers.Application.bulletsSSE()
 GET     /game/monitoring                controllers.Application.monitoringSSE()
 POST    /game/restart                   controllers.Application.restartGame()
 POST    /game/reset                     controllers.Application.resetStats()
+
+
+GET     /mobile                         controllers.Application.mobileStart()
+POST    /mobile/start                   controllers.Application.startGame()
+GET     /mobile/:username/pad           controllers.Application.mobilePad( username )
+GET     /mobile/:username/stream        controllers.Application.mobilePadStream( username )
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
