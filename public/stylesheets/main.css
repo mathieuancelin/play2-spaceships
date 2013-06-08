@@ -42,3 +42,19 @@ body {
 #lose h1 {
 	color: #FF0000;
 }
+
+#topbar {
+    width: 100%;
+    height: 32px;
+    background: #2c2c2c;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #000718;
+}
+
+#topbar #thebarcontainer {
+    color: white;
+    padding-left: 20px;
+}

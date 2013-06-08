@@ -17,6 +17,7 @@ import core._
 import akka.actor._
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.immutable.{ List => JList }
+import java.util.concurrent.atomic.AtomicLong
 
 object Application extends Controller {
 
@@ -37,6 +38,7 @@ object Application extends Controller {
     var sinkIteratee = Iteratee.foreach[JsValue] { _ => Logger("Application").info("Message on sink Iteratee ...") }
 
     var currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
+    var start = System.currentTimeMillis()
 
     def restartGame() = Action {
         val oldGame = currentGame
@@ -48,6 +50,7 @@ object Application extends Controller {
         oldGame.map { game =>
             Game.resetPlayers(game)
         }
+        start = System.currentTimeMillis()
         Ok
     }
 
@@ -82,6 +85,10 @@ object Application extends Controller {
         )
     }
 
+    def monitoringSSE() = Action { implicit request =>
+      Ok.feed( Monitoring.monitoringEnumerator.through( EventSource() ) ).as( "text/event-stream" )
+    }
+
     def playersSSE() = Action { implicit request =>
         Ok.feed( playersEnumerator.through( EventSource() ) ).as( "text/event-stream" )
     }
@@ -89,6 +96,9 @@ object Application extends Controller {
     def bulletsSSE() = Action { implicit request =>
         Ok.feed( bulletsEnumerator.through( EventSource() ) ).as( "text/event-stream" )
     }
+
+    val padCounterFire = new AtomicLong(0)
+    val padCounterMoves = new AtomicLong(0)
 
     def mobilePadStream( username: String ) = WebSocket.async[JsValue] { request =>
         currentGame.map { game =>
@@ -119,8 +129,14 @@ object Application extends Controller {
             if ( game.activePlayers.containsKey( username ) ) {
                 val actor = game.activePlayers.get( username ).actor
                 ( message \ "action" ).as[String] match {
-                    case "moving" => actor ! Move( ( message \ "x" ).as[Double],  ( message \ "y" ).as[Double] )
-                    case "fire" => actor ! Shoot( ( message \ "x" ).as[Double],  ( message \ "y" ).as[Double] )
+                    case "moving" => {
+                      actor ! Move( ( message \ "x" ).as[Double],  ( message \ "y" ).as[Double] )
+                      padCounterMoves.incrementAndGet()
+                    }
+                    case "fire" => {
+                      actor ! Shoot( ( message \ "x" ).as[Double],  ( message \ "y" ).as[Double] )
+                      padCounterFire.incrementAndGet()
+                    }
                     case _ =>
                 }
             }

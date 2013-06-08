@@ -49,8 +49,18 @@
         </style>
     </head>
     <body class="back">
-        <button id="restartgame" type="button" class="btn btn-danger"><i class="icon icon-white icon-fire"></i> Restart game</button>
-    <div id="win" style="display:none;"><h1></h1><br/><br/><a class="btn btn-primary" href="@routes.Application.index()">New game</a></div>
+        <div id="topbar">
+            <div id="thebarcontainer">
+                <button id="restartgame" type="button" class="btn btn-danger">
+                    <i class="icon icon-white icon-fire"></i> Restart game
+                </button>
+                <div id="monitoring"></div>
+            </div>
+        </div>
+        <div id="win" style="display:none;">
+            <h1></h1>
+            <br/><br/><a class="btn btn-primary" href="@routes.Application.index()">New game</a>
+        </div>
     <script>
 
         var debug = false
@@ -176,8 +186,15 @@
 
         $(window).ready(function() {
             $('#win').hide()
+            var monitoring = new EventSource( '@routes.Application.monitoringSSE()' )
             var playersSource = new EventSource( '@routes.Application.playersSSE()' )
             var bulletsSource = new EventSource( '@routes.Application.bulletsSSE()' )
+            monitoring.onmessage = function(evt) {
+                var data = JSON.parse(evt.data);
+                $('#monitoring').html('Waiting players: ' + data.waiting + ', playing: '
+                        + data.playing + ', total bullets: ' + data.totalbullets  + ', total commands: ' + data.totalcommands
+                        + ', bullets /sec: ' + data.bulletspersec + ', commands /sec: ' + data.commandspersec);
+            };
             playersSource.onmessage = function ( event ) {
                 var data = JSON.parse(event.data)
                 if (data.action == "restart") {
