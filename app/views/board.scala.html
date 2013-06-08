@@ -1,0 +1,322 @@
+@()
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Spaceships</title>
+        <meta charset=utf-8>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0," /> 
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/mustache.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/main.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/Vector2.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/ShipMovingTouch.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/BulletSebs.js")" type="text/javascript"></script>
+
+        <style type="text/css"> 
+    
+            * {
+              -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+              -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+              -webkit-tap-highlight-color: rgba(0,0,0,0); 
+              -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+              -webkit-tap-highlight-color: rgba(0,0,0,0); 
+            }
+            body {
+                background-color: #000000;
+                /*background-image: -webkit-radial-gradient(600px 300px, circle, #778, #011 60%);
+                background-image: -moz-radial-gradient(600px 300px, circle, #444, #000 60%);
+                background-image: -o-radial-gradient(600px 300px, circle, #444, #000 60%);
+                background-image: radial-gradient(600px 300px, circle, #444, #000 60%);*/
+                color: #fff;
+                margin: 0px;
+            }
+            .back {
+                background-image: -webkit-radial-gradient(600px 300px, circle, #778, #011 60%);
+                background-image: -moz-radial-gradient(600px 300px, circle, #444, #000 60%);
+                background-image: -o-radial-gradient(600px 300px, circle, #444, #000 60%);
+                background-image: radial-gradient(600px 300px, circle, #444, #000 60%);
+            }
+            canvas {
+                display:block; 
+                position:absolute; 
+            }
+            .container {
+                width:auto;
+                text-align:center;
+                background-color:#ff0000;
+            }
+        </style>
+    </head>
+    <body class="back">
+        <button id="restartgame" type="button" class="btn btn-danger"><i class="icon icon-white icon-fire"></i> Restart game</button>
+    <div id="win" style="display:none;"><h1></h1><br/><br/><a class="btn btn-primary" href="@routes.Application.index()">New game</a></div>
+    <script>
+
+        var debug = false
+
+        var board;
+
+        var canvas,
+            c, // c is the canvas' context 2D
+            container, 
+            halfWidth, 
+            halfHeight,
+            leftTouchID = -1, 
+            leftTouchPos = new Vector2(0,0),
+            leftTouchStartPos = new Vector2(0,0),
+            leftVector = new Vector2(0,0);   
+        
+        
+
+        var mouseX, mouseY, 
+            // is this running in a touch capable environment?
+            touchable = 'createTouch' in document,
+            touches = [], // array of touch vectors
+        //    ship = new ShipMoving(halfWidth, halfHeight)
+            bullets = [],
+            spareBullets = [];
+
+        var waiting = [];
+
+        var players = new HashMap()
+        var playerBullets = new HashMap()
+
+        //setupCanvas();
+        //setInterval(draw, 1000/35); 
+
+        function resetCanvas (e) {  
+            // resize the canvas - but remember - this clears the canvas too. 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight;
+            
+            halfWidth = canvas.width/2; 
+            halfHeight = canvas.height/2;
+            
+            //make sure we scroll to the top left. 
+            window.scrollTo(0,0); 
+        }
+
+        function draw() {
+          
+            c.clearRect(0,0,canvas.width, canvas.height); 
+
+            players.each(function(index, ship) {
+                //ship.targetVel.copyFromXY(x, y);
+                //ship.targetVel.multiplyEq(0.2);
+                //ship.update(); 
+                with(ship.pos) {
+                    if(x<0) x = canvas.width; 
+                    else if(x>canvas.width) x = 0;
+                    if(y<0) y = canvas.height; 
+                    else if (y>canvas.height) y = 0; 
+                }
+                ship.draw(); 
+                /**if (debug) {
+                    c.beginPath()
+                    c.arc(ship.pos.x, ship.pos.y, 40, 0, Math.PI*2,true)
+                    c.closePath()
+                    c.stroke()
+                }**/
+            })         
+            
+            for (var i = 0; i < bullets.length; i++) {
+                var bullet = bullets[i]; 
+                if(!bullet.enabled) continue; 
+                bullet.update(); 
+                bullet.draw(c); 
+                if(!bullet.enabled){
+                    spareBullets.push(bullet); 
+                }     
+                /*players.each(function(index, elem) {
+                    var dead = elem.around(bullet.pos.x, bullet.pos.y, bullet.from)
+                    if (dead) {
+                        //players.remove( elem.name )
+                        $.post("/mobile/" + elem.name + "/pad/kill", function(data) {
+                            if (data.split(":")[0] == "winner") {
+                                $('#win h1').html("The winner is : " + data.split(":")[1].split("-")[0])
+                                $('#board').hide()
+                                board.hide()
+                                $('canvas').remove()
+                                $('.container').remove()
+                                $('body').attr("class", "")
+                                $('#win').show()
+                            }
+                            if (data == "nowinner") {
+                                 $('#win h1').html("There is no winner :( ")
+                                $('#board').hide()
+                                board.hide()
+                                $('canvas').remove()
+                                $('.container').remove()
+                                $('body').attr("class", "")
+                                $('#win').show()
+                            }
+                        })
+                    }
+                }) */        
+            }
+
+            c.lineCap = 'square'
+            c.font = "12pt Calibri";
+            c.fillStyle = "#fff"; 
+            c.beginPath();
+            var message = waiting.length + " waiting player(s)";
+            if (waiting.length <= 0) {
+                message = message + " ... "
+            }
+            c.fillText( message, 10, 20 );
+            c.closePath(); 
+            c.stroke();
+
+            // ici
+            playerBullets.each(function(index, bullet) {
+                bullet.draw(c)
+            })  
+            
+            if(touchable) {
+            
+                for(var i=0; i<touches.length; i++) {
+                    
+                    var touch = touches[i]; 
+                    
+                    if(touch.identifier == leftTouchID){
+                        c.beginPath(); 
+                        c.strokeStyle = "cyan"; 
+                        c.lineWidth = 6; 
+                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true); 
+                        c.stroke();
+                        c.beginPath(); 
+                        c.strokeStyle = "cyan"; 
+                        c.lineWidth = 2; 
+                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 60,0,Math.PI*2,true); 
+                        c.stroke();
+                        c.beginPath(); 
+                        c.strokeStyle = "cyan"; 
+                        c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true); 
+                        c.stroke(); 
+                        
+                    } else {
+                        c.beginPath(); 
+                        c.strokeStyle = "red";
+                        c.lineWidth = "6";
+                        c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true); 
+                        c.stroke();
+                    }
+                }
+            } 
+        }
+
+        function makeBullet(x, y, angle, velx, vely, name) {
+            var bullet;
+            if(spareBullets.length>0) {
+                bullet = spareBullets.pop(); 
+                bullet.reset(x, y, angle, name); 
+            } else {
+                bullet = new Bullet(x, y, angle, name); 
+                bullets.push(bullet);
+            }
+            bullet.vel.plusEq( new Vector2(velx, vely)); 
+        }
+
+        function setupCanvas() {
+            
+            canvas = document.createElement( 'canvas' );
+            c = canvas.getContext( '2d' );
+            container = document.createElement( 'div' );
+            container.className = "container";
+            container.id = "board"
+
+            document.body.appendChild( container );
+            container.appendChild(canvas);  
+
+            resetCanvas(); 
+            
+            c.strokeStyle = "#ffffff";
+            c.lineWidth =2; 
+        }
+
+        $(window).ready(function() {
+            $('#win').hide()
+            var playersSource = new EventSource( '@routes.Application.playersSSE()' )
+            var bulletsSource = new EventSource( '@routes.Application.bulletsSSE()' )
+            playersSource.onmessage = function ( event ) {
+                var data = JSON.parse(event.data)
+                if (data.action == "restart") {
+                    window.location.href = "/";
+                }
+                if (data.action == "moving") {
+                    if (!players.containsKey(data.name)) {
+                        //console.log("adding " + data.name)
+                        var ship = new ShipMoving(halfWidth, halfHeight)
+                        ship.updateName(data.name)
+                        var r = (Math.floor(Math.random()*50) + 205).toString(16)
+                        var g = (Math.floor(Math.random()*50) + 205).toString(16)
+                        var b = (Math.floor(Math.random()*50) + 205).toString(16)
+                        ship.updateColor('#'+ r + g + b)
+                        players.put(data.name, ship) 
+                        document.body.appendChild(ship.canvas)
+                    } else {
+                        var ship = players.get(data.name);
+                        ship.setAngle( data.angle );
+                        ship.setThrustSize( data.thrust );
+                        ship.pos.x = data.x;
+                        ship.pos.y = data.y;
+                    }
+                }
+                // ici
+                /*if (data.action == "fire") {
+                    makeBullet(data.x, data.y, data.angle, data.velx, data.vely, data.name)
+                }
+                if (data.action == "shoot") {
+                    if (data.disabled == "true") {
+                        playerBullets.remove(data.id)
+                    } else {
+                        if (!playerBullets.containsKey(data.id)) {
+                            var bullet = new Bullet(data.x, data.y, 0); 
+                            playerBullets.put(data.id, bullet) 
+                        } 
+                        var bullet = playerBullets.get(data.id);
+                        bullet.reset(data.x, data.y, 0)
+                    }
+                }*/
+                if (data.action == "kill") {
+                    //console.log("killing " + data.name)
+                    var ship = players.get(data.name)
+                    ship.around( ship.pos.x, ship.pos.y )
+                }
+                if (data.action == "waitinglist") {
+                    waiting = data.players
+                }
+            }
+            bulletsSource.onmessage = function ( event ) {
+                var data = JSON.parse(event.data)
+                //console.log(data);
+                if (data.action == "shoot") {
+                    if (data.disabled == "true") {
+                        playerBullets.remove(data.id)
+                    } else {
+                        if (!playerBullets.containsKey(data.id)) {
+                            var bullet = new Bullet(data.x, data.y, 0); 
+                            playerBullets.put(data.id, bullet) 
+                        } 
+                        var bullet = playerBullets.get(data.id);
+                        bullet.reset(data.x, data.y, 0)
+                    }
+                }
+            }
+            setupCanvas();
+            board = $('#board')
+            setInterval(draw, 1000/35);
+            $('#restartgame').click(function(e) {
+                e.preventDefault();
+                $.post('@routes.Application.restartGame()', function(data) {console.log('game restarted');});
+            });
+            //$.post('@routes.Application.defineCanvasSize()', { width: canvas.width, height: canvas.height })
+        })
+        </script>
+    </body>
+</html>

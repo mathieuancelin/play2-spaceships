@@ -1,0 +1,19 @@
+@()
+
+@main("Ready to Play ?") {
+
+<div class="wrapper">
+	<div class="container">
+	    <div class="row">
+			<div>
+				<br/>
+			    <form action="@routes.Application.startGame()" method="POST">
+	        		<input placeholder="Type your nickname" type="text" name="username" id="username" class="span12"/>
+	        		<br/>
+	        		<input type="submit" id="submit" value="Play !> SpaceShips" class="span12 btn btn-large btn-primary" />
+			    </form>
+			</div>
+		</div>   
+	</div>
+</div>
+}
