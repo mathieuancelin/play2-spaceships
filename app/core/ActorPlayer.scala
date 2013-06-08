@@ -68,7 +68,7 @@ class ActorPlayer( name: String, var posX: Double = 300.0, var posY: Double = 30
 
     def push( status: String, action: String, spaceShip: SpaceShip ) = {
         if (alive) {
-            Application.playersEnumerator.push(JsObject(JList(
+            Application.playersChannel.push(JsObject(JList(
                 "name" -> JsString( name ),
                 "action" -> JsString( action ),
                 "angle" -> JsNumber( spaceShip.angle ),
@@ -92,7 +92,7 @@ class ShootActor( currentGame: Option[Game] ) extends Actor with ActorLogging {
                 bullets = bullets.filter { bullet =>
                     bullet.update()
                     if (bullet.enabled) {
-                        Application.bulletsEnumerator.push( JsObject(JList(
+                        Application.bulletsChannel.push( JsObject(JList(
                             "action" -> JsString( "shoot" ),
                             "id" -> JsString( bullet.id ),
                             "x" -> JsNumber( bullet.pos.x ),
@@ -109,7 +109,7 @@ class ShootActor( currentGame: Option[Game] ) extends Actor with ActorLogging {
                             }
                         }
                     } else {
-                        Application.bulletsEnumerator.push( JsObject(JList(
+                        Application.bulletsChannel.push( JsObject(JList(
                             "action" -> JsString( "shoot" ),
                             "id" -> JsString( bullet.id ),
                             "disabled" -> JsString( "true" )

@@ -16,10 +16,11 @@ import scala.collection.immutable.{ List => JList }
 import controllers._
 import scala.collection.JavaConversions._
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.iteratee.Concurrent.Channel
 
-case class Player( username: String, spaceShip: SpaceShip, enumerator: PushEnumerator[JsValue], actor: ActorRef )
+case class Player( username: String, spaceShip: SpaceShip, enumerator: Enumerator[JsValue], channel: Channel[JsValue], actor: ActorRef )
 
-class Game( enumerator: PushEnumerator[JsValue] ) {
+class Game( enumerator: Enumerator[JsValue], channel: Channel[JsValue] ) {
 
     val system = ActorSystem("CurrentGameSystem")
 
@@ -48,7 +49,7 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
         system.shutdown()
     }
 
-    def createUser( username: String ):PushEnumerator[JsValue] = {
+    def createUser( username: String ): Enumerator[JsValue] = {
         if ( activePlayers.size < Game.playerMax) { 
             createUserIfAbsent( username, "play", activePlayers )
         } else {
@@ -68,20 +69,22 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
             val ship = new SpaceShip( new Random().nextInt(XMAX - 50) + 50, new Random().nextInt(YMAX - 50) + 50 )
             val actor = system.actorOf(Props(new ActorPlayer(username, 
                 spaceShip = ship, currentGame = Option( this ))), name = key)
-            map.put( username, Player( username, ship, Enumerator.imperative[JsValue]( ), actor ) )
+            val concurrent = Concurrent.broadcast[JsValue]
+            map.put( username, Player( username, ship, concurrent._1, concurrent._2, actor ) )
         } 
-        val pushEnum = map.get( username ).enumerator
+        val pushEnum = map.get( username ).channel
         system.scheduler.scheduleOnce(new FiniteDuration(200, TimeUnit.MILLISECONDS)) {
             pushEnum.push( JsObject( JList( "action" -> JsString( action ) ) ) )
         }
-        pushEnum
+        //pushEnum
+        map.get( username ).enumerator
     }
 
     def kill( username: String ) = {
     	val out = Option( activePlayers.get( username ) )
         out.map { player =>
-            player.enumerator.push( JsObject( JList( "action" -> JsString( "kill" ) ) ) )
-            enumerator.push( JsObject( JList( "action" -> JsString( "kill" ), "name" -> JsString( username ) ) ) )
+            player.channel.push( JsObject( JList( "action" -> JsString( "kill" ) ) ) )
+            channel.push( JsObject( JList( "action" -> JsString( "kill" ), "name" -> JsString( username ) ) ) )
             player.actor ! Kill( 0, 0 )
             player.actor ! PoisonPill
             activePlayers.remove( username )
@@ -90,17 +93,17 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
                 waitingPlayers.remove( username )
                 waitingPlayersName.remove( username )
                 activePlayers.put( waitingPlayer.username, waitingPlayer )
-                waitingPlayer.enumerator.push( JsObject( JList( "action" -> JsString( "play" ) ) ) )
+                waitingPlayer.channel.push( JsObject( JList( "action" -> JsString( "play" ) ) ) )
             }
         }
-        pushWaitingList( Application.playersEnumerator )
+        pushWaitingList( Application.playersChannel )
         if (out.isDefined && activePlayers.isEmpty() && waitingPlayers.isEmpty()) {
             Application.currentGame = None
             "nowinner"
         } else 
         if (out.isDefined && activePlayers.size == 1 && waitingPlayers.isEmpty()) {
             val p = activePlayers.entrySet().iterator().next().getValue()
-            p.enumerator.push( JsObject( JList( "action" -> JsString( "win" ) ) ) )
+            p.channel.push( JsObject( JList( "action" -> JsString( "win" ) ) ) )
             Application.currentGame = None
             "winner:" + p.username
         } else { 
@@ -108,7 +111,7 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
         }
     }
 
-    def pushWaitingList( enumerator: PushEnumerator[JsValue] ) = {
+    def pushWaitingList( enumerator: Channel[JsValue] ) = {
         var waiting = JList[JsObject]( )
         for ( player <- waitingPlayers.values() ) {
             waiting = waiting :+ JsObject( JList( "player" -> JsString( player.username ) ) )
@@ -129,8 +132,8 @@ object Game {
         "playerWithUsername-" + username
     }
 
-    def apply( enumerator: PushEnumerator[JsValue] ): Game = {
-        val game = new Game( enumerator ) 
+    def apply( enumerator: Enumerator[JsValue], channel: Channel[JsValue] ): Game = {
+        val game = new Game( enumerator, channel )
         game
     }
 
@@ -146,10 +149,10 @@ object Game {
 
     def resetPlayers(game: Game) = {
         for(player <- game.waitingPlayers.values) {
-            player.enumerator.push(Json.obj("action" -> "restart"))
+            player.channel.push(Json.obj("action" -> "restart"))
         }
         for(player <- game.activePlayers.values) {
-            player.enumerator.push(Json.obj("action" -> "restart"))
+            player.channel.push(Json.obj("action" -> "restart"))
         }
     }
 }

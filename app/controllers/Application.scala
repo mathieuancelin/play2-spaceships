@@ -22,26 +22,29 @@ object Application extends Controller {
 
     val usernameForm = Form( "username" -> text )  
     val actionForm = Form( "message" -> text )  
-    val sizeForm = Form( tuple( "width" -> text, "height" -> text ) )  
+    val sizeForm = Form( tuple( "width" -> text, "height" -> text ) )
 
-    val playersEnumerator = Enumerator.imperative[JsValue]( )
-    val bulletsEnumerator = Enumerator.imperative[JsValue]( )
+    val players = Concurrent.broadcast[JsValue]
+    val bullets = Concurrent.broadcast[JsValue]
 
-    val playersHub = Concurrent.hub[JsValue]( playersEnumerator )
-    val bulletsHub = Concurrent.hub[JsValue]( bulletsEnumerator )
+    val playersChannel = players._2
+    val bulletsChannel = bullets._2
 
-    var sinkEnumerator = Enumerator.imperative[JsValue]( )
+    val playersEnumerator = players._1
+    val bulletsEnumerator = bullets._1
+
+    var sinkEnumerator = Enumerator.eof[JsValue]
     var sinkIteratee = Iteratee.foreach[JsValue] { _ => Logger("Application").info("Message on sink Iteratee ...") }
 
-    var currentGame = Option( Game( playersEnumerator ).start() )
+    var currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
 
     def restartGame() = Action {
         val oldGame = currentGame
         currentGame.map { game =>
             game.stop()
         }
-        currentGame = Option( Game( playersEnumerator ).start() )
-        playersEnumerator.push(Json.obj("action" -> "restart"))
+        currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
+        playersChannel.push(Json.obj("action" -> "restart"))
         oldGame.map { game =>
             Game.resetPlayers(game)
         }
@@ -49,10 +52,6 @@ object Application extends Controller {
     }
 
     def index() = Action { implicit request =>
-        /*currentGame.map { game =>
-            game.stop()
-        }
-        currentGame = Option( Game( playersEnumerator ).start() )*/
         Ok( views.html.board() )    
     }
 
@@ -75,7 +74,6 @@ object Application extends Controller {
             formWithErrors => BadRequest( "You need to post a 'username' value!" ),
             { username =>
                 currentGame.map { game =>
-                    //Redirect("/mobile/" + username.replace(" ", "").replace("-", "") + "-" + System.nanoTime() + "/pad")
                     Redirect("/mobile/" + Game.sanitizeUsername( username ) + "/pad")
                 }.getOrElse(
                     Redirect( routes.Application.mobileStart() )
@@ -85,18 +83,17 @@ object Application extends Controller {
     }
 
     def playersSSE() = Action { implicit request =>
-        Ok.feed( playersHub.getPatchCord().through( EventSource() ) ).as( "text/event-stream" )
+        Ok.feed( playersEnumerator.through( EventSource() ) ).as( "text/event-stream" )
     }
 
     def bulletsSSE() = Action { implicit request =>
-        Ok.feed( bulletsHub.getPatchCord().through( EventSource() ) ).as( "text/event-stream" )
+        Ok.feed( bulletsEnumerator.through( EventSource() ) ).as( "text/event-stream" )
     }
 
-    // for websocket capable devices
     def mobilePadStream( username: String ) = WebSocket.async[JsValue] { request =>
         currentGame.map { game =>
             val out = game.createUser( username )
-            game.pushWaitingList( playersEnumerator )
+            game.pushWaitingList( playersChannel )
             val in = Iteratee.foreach[JsValue] ( _ match {
                 case message: JsObject => {
                     processInputFromPlayer( username, message )
