@@ -1,4 +1,4 @@
-@()
+@(master: Boolean)
 
 <!DOCTYPE html>
 
@@ -21,9 +21,11 @@
     <body class="back">
         <div id="topbar">
             <div id="thebarcontainer">
+                @if(master) {
                 <button id="restartgame" type="button" class="btn btn-danger">
                     <i class="icon icon-white icon-fire"></i> Restart game
                 </button>
+                }
                 <button id="reset" type="button" class="btn btn-success">
                     <i class="icon icon-white icon-retweet"></i> Reset stats
                 </button>
@@ -33,7 +35,11 @@
         <div id="win">
             <h1>The winner is</h1>
             <h1 id="player">Anonymous</h1>
+            @if(master) {
+            <br/><br/><a class="btn btn-primary pull-right" href="@routes.Application.resetIndexMaster()">New game</a>
+            } else {
             <br/><br/><a class="btn btn-primary pull-right" href="@routes.Application.resetIndex()">New game</a>
+            }
         </div>
     <script>
 
@@ -180,7 +186,11 @@
             playersSource.onmessage = function ( event ) {
                 var data = JSON.parse(event.data)
                 if (data.action == "restart") {
-                    window.location.href = "/";
+                    @if(master) {
+                        window.location.href = "/master";
+                    } else {
+                        window.location.href = "/";
+                    }
                 }
                 if (data.action == "moving") {
                     if (!players.containsKey(data.name)) {

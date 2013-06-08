@@ -5,6 +5,8 @@
 # Home page
 GET     /                               controllers.Application.index()
 GET     /reset                          controllers.Application.resetIndex()
+GET     /master                         controllers.Application.indexMaster()
+GET     /master/reset                   controllers.Application.resetIndexMaster()
 GET     /m                              controllers.Application.mobileStart()
 GET     /m/:username/p                  controllers.Application.mobilePad( username )
 GET     /m/:username/stream             controllers.Application.mobilePadStream( username )

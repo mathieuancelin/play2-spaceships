@@ -40,6 +40,8 @@ object Application extends Controller {
     var currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
     val start = new AtomicLong(System.currentTimeMillis())
 
+    val master = play.api.Play.configuration(play.api.Play.current).getBoolean("application.enable.master").getOrElse(false)
+
     def resetStats() = Action {
       start.set(System.currentTimeMillis())
       padCounterFire.set(0)
@@ -69,11 +71,19 @@ object Application extends Controller {
     }
 
     def index() = Action { implicit request =>
-        Ok( views.html.board() )    
+        Ok( views.html.board(!master) )
     }
 
     def resetIndex() = Action { implicit request =>
-      Ok( views.html.board() )
+      Ok( views.html.board(!master) )
+    }
+
+    def indexMaster() = Action { implicit request =>
+      Ok( views.html.board(true) )
+    }
+
+    def resetIndexMaster() = Action { implicit request =>
+      Ok( views.html.board(true) )
     }
 
     def mobileStart() = Action { implicit request =>
