@@ -40,10 +40,10 @@ class ActorPlayer( name: String, var posX: Double = 300.0, var posY: Double = 30
             } else if ( spaceShip.pos.x > game.XMAX) {
                 spaceShip.pos.x = 1
             }
-            if ( spaceShip.pos.y < 1) {
+            if ( spaceShip.pos.y < 30) {
                 spaceShip.pos.y = game.YMAX
             } else if ( spaceShip.pos.y > game.YMAX ) {
-                spaceShip.pos.y = 1
+                spaceShip.pos.y = 31
             }
             posX = spaceShip.pos.x
             posY = spaceShip.pos.y

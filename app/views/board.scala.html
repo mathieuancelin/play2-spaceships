@@ -102,8 +102,8 @@
                 with(ship.pos) {
                     if(x<0) x = canvas.width;
                     else if(x>canvas.width) x = 0;
-                    if(y<0) y = canvas.height;
-                    else if (y>canvas.height) y = 0;
+                    if(y<30) y = canvas.height;
+                    else if (y>canvas.height) y = 30;
                 }
                 ship.draw();
             });
