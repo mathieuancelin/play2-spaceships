@@ -195,13 +195,16 @@
             var bulletsSource = new EventSource( '@routes.Application.bulletsSSE()' )
             monitoring.onmessage = function(evt) {
                 var data = JSON.parse(evt.data);
-                var space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-                $('#monitoring').html('Waiting players: ' + data.waiting
+                var space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                $('#monitoring').html('waiting: ' + data.waiting
                         + space + 'playing: ' + data.playing
-                        + space + 'total bullets: ' + data.totalbullets
-                        + space + 'total commands: ' + data.totalcommands
-                        + space + 'bullets/sec: ' + data.bulletspersec
-                        + space + 'commands/sec: ' + data.commandspersec);
+                        + space + 'tot. bullets: ' + data.totalbullets
+                        + space + 'mov/s: ' + data.commandspersec
+                        + space + 'in: ' + data.inrequests
+                        + space + 'out: ' + data.outrequests
+                        + space + 'in/s: ' + data.inrequestspersec
+                        + space + 'out/s: ' + data.outrequestspersec
+                );
             };
             playersSource.onmessage = function ( event ) {
                 var data = JSON.parse(event.data)

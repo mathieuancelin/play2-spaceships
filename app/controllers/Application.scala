@@ -42,6 +42,9 @@ object Application extends Controller {
 
     def resetStats() = Action {
       start.set(System.currentTimeMillis())
+      padCounterFire.set(0)
+      padCounterMoves.set(0)
+      outCounter.set(0)
       Ok
     }
 
@@ -93,19 +96,27 @@ object Application extends Controller {
     }
 
     def monitoringSSE() = Action { implicit request =>
-      Ok.feed( Monitoring.monitoringEnumerator.through( EventSource() ) ).as( "text/event-stream" )
+      Ok.feed( Monitoring.monitoringEnumerator
+        .through( countEnumeratee )
+        .through( EventSource() ) ).as( "text/event-stream" )
     }
 
     def playersSSE() = Action { implicit request =>
-        Ok.feed( playersEnumerator.through( EventSource() ) ).as( "text/event-stream" )
+        Ok.feed( playersEnumerator
+          .through( countEnumeratee )
+          .through( EventSource() ) ).as( "text/event-stream" )
     }
 
     def bulletsSSE() = Action { implicit request =>
-        Ok.feed( bulletsEnumerator.through( EventSource() ) ).as( "text/event-stream" )
+        Ok.feed( bulletsEnumerator
+          .through( countEnumeratee )
+          .through( EventSource() ) ).as( "text/event-stream" )
     }
 
     val padCounterFire = new AtomicLong(0)
     val padCounterMoves = new AtomicLong(0)
+    val outCounter = new AtomicLong(0)
+    val countEnumeratee = Enumeratee.map[JsValue] { e => outCounter.incrementAndGet(); e}
 
     def mobilePadStream( username: String ) = WebSocket.async[JsValue] { request =>
         currentGame.map { game =>
@@ -124,7 +135,7 @@ object Application extends Controller {
                     }
                 }
             }
-            Promise.pure( ( in, out ) )
+            Promise.pure( ( in, out.through( countEnumeratee ) ) )
         }.getOrElse( 
             Promise.pure( ( sinkIteratee, sinkEnumerator ) ) 
         )
