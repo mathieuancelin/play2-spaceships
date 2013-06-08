@@ -73,10 +73,10 @@ class SpaceShip( var x: Double, var y: Double ) {
   }
 
   def around( vx: Double, vy: Double ):Boolean = {
-    var downx = pos.x - 10
-    var upx = pos.x + 10
-    var downy = pos.y - 10
-    var upy = pos.y + 10
+    var downx = pos.x - 20
+    var upx = pos.x + 20
+    var downy = pos.y - 20
+    var upy = pos.y + 20
     if (vx > downx && vx < upx && vy > downy  && vy < upy ) {
       pos.x = -30;
       pos.y = -30;

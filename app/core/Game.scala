@@ -106,7 +106,7 @@ class Game( enumerator: Enumerator[JsValue], channel: Channel[JsValue] ) {
             val p = activePlayers.entrySet().iterator().next().getValue()
             p.channel.push( JsObject( JList( "action" -> JsString( "win" ) ) ) )
             Application.currentGame = None
-            Application.playersChannel.push(Json.obj("action" -> "winner", "username" -> p.username))
+            Application.playersChannel.push(Json.obj("action" -> "winner", "username" -> p.username.split("-").head))
             "winner:" + p.username
         } else { 
             "continue"
