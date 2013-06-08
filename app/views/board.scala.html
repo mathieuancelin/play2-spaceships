@@ -54,6 +54,9 @@
                 <button id="restartgame" type="button" class="btn btn-danger">
                     <i class="icon icon-white icon-fire"></i> Restart game
                 </button>
+                <button id="reset" type="button" class="btn btn-success">
+                    <i class="icon icon-white icon-retweet"></i> Reset stats
+                </button>
                 <div id="monitoring"></div>
             </div>
         </div>
@@ -253,6 +256,11 @@
                 e.preventDefault();
                 $.post('@routes.Application.restartGame()', function(data) {console.log('game restarted');});
             });
+            $('#reset').click(function(e) {
+                e.preventDefault();
+                $.post('@routes.Application.resetStats()', function(data) {console.log('stats reset');});
+            });
+
         })
         </script>
     </body>

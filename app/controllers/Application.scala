@@ -38,7 +38,12 @@ object Application extends Controller {
     var sinkIteratee = Iteratee.foreach[JsValue] { _ => Logger("Application").info("Message on sink Iteratee ...") }
 
     var currentGame = Option( Game( playersEnumerator, playersChannel ).start() )
-    var start = System.currentTimeMillis()
+    val start = new AtomicLong(System.currentTimeMillis())
+
+    def resetStats() = Action {
+      start.set(System.currentTimeMillis())
+      Ok
+    }
 
     def restartGame() = Action {
         val oldGame = currentGame
@@ -50,7 +55,9 @@ object Application extends Controller {
         oldGame.map { game =>
             Game.resetPlayers(game)
         }
-        start = System.currentTimeMillis()
+        padCounterFire.set(0)
+        padCounterMoves.set(0)
+        start.set(System.currentTimeMillis())
         Ok
     }
 

@@ -57,6 +57,7 @@ body {
 #topbar #thebarcontainer > button {
     display: inline;
     float:left;
+    margin-right: 5px;
 }
 #topbar #thebarcontainer > div {
     display: inline;

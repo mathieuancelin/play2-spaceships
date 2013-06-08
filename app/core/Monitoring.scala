@@ -18,7 +18,7 @@ object Monitoring {
 
   def fetchData(): JsValue = {
     Application.currentGame.map { game =>
-      val ellapsed = (System.currentTimeMillis() - Application.start) / 1000
+      val ellapsed = (System.currentTimeMillis() - Application.start.get()) / 1000
       Json.obj(
         "waiting" -> game.waitingPlayers.size(),
         "playing" -> game.activePlayers.size(),

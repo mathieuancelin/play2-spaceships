@@ -49,9 +49,27 @@
         <script>
 
             $(window).ready(function() {
-                $('#win').hide()
-                $('#lose').hide()
-            })
+                $('#win').hide();
+                $('#lose').hide();
+                $(document).keydown(function(e){
+                    e.preventDefault();
+                    if (e.keyCode == 37) {    // left
+                        x = x - 10;
+                    }
+                    if (e.keyCode == 38) {    // up
+                        y = y - 10
+                    }
+                    if (e.keyCode == 39) {    // right
+                        x = x + 10;
+                    }
+                    if (e.keyCode == 40) {    // down
+                        y = y + 10;
+                    }
+                    if (e.keyCode == 32) {    // fire
+                        fire(0,0);
+                    }
+                });
+            });
             var canvas,
             c, // c is the canvas' context 2D
             container, 
