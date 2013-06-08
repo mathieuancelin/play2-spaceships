@@ -54,6 +54,16 @@ body {
     border-bottom-color: #000718;
 }
 
+#topbar #thebarcontainer > button {
+    display: inline;
+    float:left;
+}
+#topbar #thebarcontainer > div {
+    display: inline;
+    float:left;
+    margin-top: 7px;
+    margin-left: 30px;
+}
 #topbar #thebarcontainer {
     color: white;
     padding-left: 20px;

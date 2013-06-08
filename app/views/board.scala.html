@@ -89,8 +89,8 @@
         var playerBullets = new HashMap();
 
         function resetCanvas (e) {  
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth - 10;
+            canvas.height = window.innerHeight - 60;
             halfWidth = canvas.width/2;
             halfHeight = canvas.height/2;
             window.scrollTo(0,0); 
@@ -119,14 +119,14 @@
             c.lineCap = 'square'
             c.font = "12pt Calibri";
             c.fillStyle = "#fff";
-            c.beginPath();
-            var message = waiting.length + " waiting player(s)";
-            if (waiting.length <= 0) {
-                message = message + " ... "
-            }
-            c.fillText( message, 10, 20 );
-            c.closePath();
-            c.stroke();
+            //c.beginPath();
+            //var message = waiting.length + " waiting player(s)";
+            //if (waiting.length <= 0) {
+            //    message = message + " ... "
+            //}
+            //c.fillText( message, 10, 20 );
+            //c.closePath();
+            //c.stroke();
             playerBullets.each(function(index, bullet) {
                 bullet.draw(c)
             });
@@ -173,6 +173,7 @@
 
         function setupCanvas() {
             canvas = document.createElement( 'canvas' );
+            canvas.className = 'back';
             c = canvas.getContext( '2d' );
             container = document.createElement( 'div' );
             container.className = "container";
@@ -191,9 +192,13 @@
             var bulletsSource = new EventSource( '@routes.Application.bulletsSSE()' )
             monitoring.onmessage = function(evt) {
                 var data = JSON.parse(evt.data);
-                $('#monitoring').html('Waiting players: ' + data.waiting + ', playing: '
-                        + data.playing + ', total bullets: ' + data.totalbullets  + ', total commands: ' + data.totalcommands
-                        + ', bullets /sec: ' + data.bulletspersec + ', commands /sec: ' + data.commandspersec);
+                var space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                $('#monitoring').html('Waiting players: ' + data.waiting
+                        + space + 'playing: ' + data.playing
+                        + space + 'total bullets: ' + data.totalbullets
+                        + space + 'total commands: ' + data.totalcommands
+                        + space + 'bullets/sec: ' + data.bulletspersec
+                        + space + 'commands/sec: ' + data.commandspersec);
             };
             playersSource.onmessage = function ( event ) {
                 var data = JSON.parse(event.data)
