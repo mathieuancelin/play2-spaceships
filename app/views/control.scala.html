@@ -19,14 +19,27 @@
         <script src="@routes.Assets.at("javascripts/BulletSebs.js")" type="text/javascript"></script>
     </head>
     <body>
-        <div id="win" style="display:none;"><h1><h1>YOU WIN !!!</h1><br/><br/><a class="btn btn-primary" href="@routes.Application.mobilePad(username.split("-").apply(0))">Play again</a></div>
-        <div id="lose" style="display:none;"><br/><h1>YOU'RE DEAD !!!</h1><br/><br/><a class="btn btn-primary" href="@routes.Application.mobilePad(username.split("-").apply(0))">Play again</a></div>
-        <div id="wait" style="display:none;"><br/><h1>Waiting to join current game ...</h1></div>
+        <div id="win" style="display:none;">
+            <h1>YOU WIN !!!</h1>
+            <br/><br/>
+            <a class="btn btn-primary pull-right" href="@routes.Application.mobilePad(username.split("-").apply(0))">Play again</a>
+        </div>
+        <div id="lose" style="display:none;">
+            <br/>
+            <h1>YOU'RE DEAD !!!</h1>
+            <br/><br/>
+            <a class="btn btn-primary pull-right" href="@routes.Application.mobilePad(username.split("-").apply(0))">Play again</a>
+        </div>
+        <div id="wait" style="display:none;">
+            <br/>
+            <h1>Waiting to join current game ...</h1>
+        </div>
         <script>
 
             $(window).ready(function() {
                 $('#win').hide();
                 $('#lose').hide();
+                //$('#wait').hide();
                 $(document).keydown(function(e){
                     e.preventDefault();
                     if (e.keyCode == 37) {    // left
