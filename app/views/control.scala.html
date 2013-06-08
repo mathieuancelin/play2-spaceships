@@ -328,7 +328,7 @@
                     if (websocketCapable) {
                         socket.send( message )
                     } else {
-                        $.post("@routes.Application.padAction(username)", { message: message } )
+                        // TODO : display non ws capable
                     }
                 }
             }

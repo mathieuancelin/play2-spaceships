@@ -95,9 +95,9 @@ object Application extends Controller {
     // for websocket capable devices
     def mobilePadStream( username: String ) = WebSocket.async[JsValue] { request =>
         currentGame.map { game =>
-            var out = game.createUser( username )
+            val out = game.createUser( username )
             game.pushWaitingList( playersEnumerator )
-            var in = Iteratee.foreach[JsValue] ( _ match {
+            val in = Iteratee.foreach[JsValue] ( _ match {
                 case message: JsObject => {
                     processInputFromPlayer( username, message )
                 }
@@ -113,46 +113,6 @@ object Application extends Controller {
             Promise.pure( ( in, out ) )
         }.getOrElse( 
             Promise.pure( ( sinkIteratee, sinkEnumerator ) ) 
-        )
-    }
-
-    // for non websocket capable devices
-    def padAction( username: String ) = Action { implicit request =>
-        currentGame.map { game =>
-            game.createUser( username )
-            //game.pushWaitingList( playersEnumerator )
-            actionForm.bindFromRequest.fold (
-                formWithErrors => BadRequest( "You have to provide an 'action' value." ),
-                { action =>
-                    processInputFromPlayer( username, Json.parse( action ) )
-                    Ok
-                } 
-            )
-        }.getOrElse( 
-            InternalServerError( "There is currently no game running" ) 
-        )
-    }
-
-    def killAction( username: String ) = Action { implicit request =>
-        /*currentGame.map { game =>
-            Ok( game.kill( username ) )
-        }.getOrElse( 
-            InternalServerError( "There is currently no game running" ) 
-        )*/
-        Ok
-    }
-
-    def defineCanvasSize() = Action { implicit request =>
-        sizeForm.bindFromRequest.fold (
-            formWithErrors => BadRequest( "You need to post 'width' and 'height' values!" ),
-            { form =>
-                currentGame.map { game =>
-                    println(s"canvas is ${form._1} x ${form._2}")
-                    game.XMAX = Integer.valueOf(form._1)
-                    game.YMAX = Integer.valueOf(form._2)
-                }
-                Ok
-            } 
         )
     }
 

@@ -52,16 +52,12 @@ class ActorPlayer( name: String, var posX: Double = 300.0, var posY: Double = 30
         case Shoot( x, y) => {
             val bullet = Bullet(name, spaceShip.pos.x, spaceShip.pos.y, spaceShip.angle)
             bullet.vel.plusEq( spaceShip.vel ) 
-            //push( "alive", "fire", spaceShip )
             currentGame.map { game =>
-                //val act = game.system.actorOf(Props(new BulletActor(bullet, currentGame)), name = "bullet-" + bullet.from + "-" + bullet.id)
-                //game.system.eventStream.subscribe(act, classOf[Tick])
                 game.shooter ! bullet
             }
         }
         case Kill( x, y) => {
             if  ( spaceShip.around(x, y) ) {
-                //println( "[" + name + "] I'm dead bro !")
                 alive = false
                 currentGame.map { game =>
                     game.kill( name )
@@ -82,44 +78,6 @@ class ActorPlayer( name: String, var posX: Double = 300.0, var posY: Double = 30
                 "velx" -> JsNumber( spaceShip.vel.x ),
                 "vely" -> JsNumber( spaceShip.vel.y )
             )))
-        }
-    }
-}
-
-class BulletActor( bullet: Bullet, currentGame: Option[Game] ) extends Actor with ActorLogging {
-    def receive = {
-        case Tick() => {
-            bullet.update()
-            if (bullet.enabled) {
-                Application.bulletsEnumerator.push( JsObject(JList(
-                    "action" -> JsString( "shoot" ),
-                    "id" -> JsString( bullet.id ),
-                    "x" -> JsNumber( bullet.pos.x ),
-                    "y" -> JsNumber( bullet.pos.y ),
-                    "disabled" -> JsString( "false" )
-                )))
-                currentGame.map { game =>
-                    for ( player <- game.activePlayers.values() ) {
-                        if (!player.username.equals( bullet.from )) {
-                            if (player.spaceShip.around( bullet.pos.x, bullet.pos.y )) {
-                                //println( "[" + player.username + "] I'm dead bro !")
-                                game.kill( player.username )
-                                player.actor ! Kill( bullet.pos.x, bullet.pos.y )
-                            }
-                        }
-                    }
-                }
-            } else {
-                Application.bulletsEnumerator.push( JsObject(JList(
-                    "action" -> JsString( "shoot" ),
-                    "id" -> JsString( bullet.id ),
-                    "disabled" -> JsString( "true" )
-                )))
-                currentGame.map { game =>
-                    game.system.eventStream.unsubscribe( self )
-                }
-                self ! PoisonPill
-            }
         }
     }
 }
@@ -159,10 +117,9 @@ class ShootActor( currentGame: Option[Game] ) extends Actor with ActorLogging {
                     }
                     bullet.enabled
                 }
-            }//.getOrElse(println("nothing here !!!"))
+            }
         }
         case bullet: Bullet => {
-            //println("got one bullet : " + bullet.toString() + " => " + bullets.mkString(", "))
             bullets = bullets.:+( bullet )
         }
     }

@@ -38,7 +38,6 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
     def start() = {
         cancellable = system.scheduler.schedule(0 millisecond, 38 milliseconds) { //28 rapide
             shooter ! Tick()
-            //system.eventStream.publish( Tick() )  
         }
         this
     }
@@ -100,8 +99,6 @@ class Game( enumerator: PushEnumerator[JsValue] ) {
             "nowinner"
         } else 
         if (out.isDefined && activePlayers.size == 1 && waitingPlayers.isEmpty()) {
-        //if (activePlayers.size == 1 && waitingPlayers.isEmpty()) {
-            // stop game and call winner
             val p = activePlayers.entrySet().iterator().next().getValue()
             p.enumerator.push( JsObject( JList( "action" -> JsString( "win" ) ) ) )
             Application.currentGame = None

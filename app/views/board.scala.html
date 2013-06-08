@@ -28,10 +28,6 @@
             }
             body {
                 background-color: #000000;
-                /*background-image: -webkit-radial-gradient(600px 300px, circle, #778, #011 60%);
-                background-image: -moz-radial-gradient(600px 300px, circle, #444, #000 60%);
-                background-image: -o-radial-gradient(600px 300px, circle, #444, #000 60%);
-                background-image: radial-gradient(600px 300px, circle, #444, #000 60%);*/
                 color: #fff;
                 margin: 0px;
             }
@@ -70,144 +66,87 @@
             leftTouchPos = new Vector2(0,0),
             leftTouchStartPos = new Vector2(0,0),
             leftVector = new Vector2(0,0);   
-        
-        
 
         var mouseX, mouseY, 
-            // is this running in a touch capable environment?
             touchable = 'createTouch' in document,
             touches = [], // array of touch vectors
-        //    ship = new ShipMoving(halfWidth, halfHeight)
             bullets = [],
             spareBullets = [];
 
         var waiting = [];
 
-        var players = new HashMap()
-        var playerBullets = new HashMap()
-
-        //setupCanvas();
-        //setInterval(draw, 1000/35); 
+        var players = new HashMap();
+        var playerBullets = new HashMap();
 
         function resetCanvas (e) {  
-            // resize the canvas - but remember - this clears the canvas too. 
-            canvas.width = window.innerWidth; 
+            canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            
-            halfWidth = canvas.width/2; 
+            halfWidth = canvas.width/2;
             halfHeight = canvas.height/2;
-            
-            //make sure we scroll to the top left. 
             window.scrollTo(0,0); 
         }
 
         function draw() {
-          
-            c.clearRect(0,0,canvas.width, canvas.height); 
-
+            c.clearRect(0,0,canvas.width, canvas.height);
             players.each(function(index, ship) {
-                //ship.targetVel.copyFromXY(x, y);
-                //ship.targetVel.multiplyEq(0.2);
-                //ship.update(); 
                 with(ship.pos) {
-                    if(x<0) x = canvas.width; 
+                    if(x<0) x = canvas.width;
                     else if(x>canvas.width) x = 0;
-                    if(y<0) y = canvas.height; 
-                    else if (y>canvas.height) y = 0; 
+                    if(y<0) y = canvas.height;
+                    else if (y>canvas.height) y = 0;
                 }
-                ship.draw(); 
-                /**if (debug) {
-                    c.beginPath()
-                    c.arc(ship.pos.x, ship.pos.y, 40, 0, Math.PI*2,true)
-                    c.closePath()
-                    c.stroke()
-                }**/
-            })         
-            
+                ship.draw();
+            });
             for (var i = 0; i < bullets.length; i++) {
-                var bullet = bullets[i]; 
-                if(!bullet.enabled) continue; 
-                bullet.update(); 
-                bullet.draw(c); 
+                var bullet = bullets[i];
+                if(!bullet.enabled) continue;
+                bullet.update();
+                bullet.draw(c);
                 if(!bullet.enabled){
-                    spareBullets.push(bullet); 
-                }     
-                /*players.each(function(index, elem) {
-                    var dead = elem.around(bullet.pos.x, bullet.pos.y, bullet.from)
-                    if (dead) {
-                        //players.remove( elem.name )
-                        $.post("/mobile/" + elem.name + "/pad/kill", function(data) {
-                            if (data.split(":")[0] == "winner") {
-                                $('#win h1').html("The winner is : " + data.split(":")[1].split("-")[0])
-                                $('#board').hide()
-                                board.hide()
-                                $('canvas').remove()
-                                $('.container').remove()
-                                $('body').attr("class", "")
-                                $('#win').show()
-                            }
-                            if (data == "nowinner") {
-                                 $('#win h1').html("There is no winner :( ")
-                                $('#board').hide()
-                                board.hide()
-                                $('canvas').remove()
-                                $('.container').remove()
-                                $('body').attr("class", "")
-                                $('#win').show()
-                            }
-                        })
-                    }
-                }) */        
+                    spareBullets.push(bullet);
+                }
             }
-
             c.lineCap = 'square'
             c.font = "12pt Calibri";
-            c.fillStyle = "#fff"; 
+            c.fillStyle = "#fff";
             c.beginPath();
             var message = waiting.length + " waiting player(s)";
             if (waiting.length <= 0) {
                 message = message + " ... "
             }
             c.fillText( message, 10, 20 );
-            c.closePath(); 
+            c.closePath();
             c.stroke();
-
-            // ici
             playerBullets.each(function(index, bullet) {
                 bullet.draw(c)
-            })  
-            
+            });
             if(touchable) {
-            
                 for(var i=0; i<touches.length; i++) {
-                    
-                    var touch = touches[i]; 
-                    
+                    var touch = touches[i];
                     if(touch.identifier == leftTouchID){
-                        c.beginPath(); 
-                        c.strokeStyle = "cyan"; 
-                        c.lineWidth = 6; 
-                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true); 
+                        c.beginPath();
+                        c.strokeStyle = "cyan";
+                        c.lineWidth = 6;
+                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true);
                         c.stroke();
-                        c.beginPath(); 
-                        c.strokeStyle = "cyan"; 
-                        c.lineWidth = 2; 
-                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 60,0,Math.PI*2,true); 
+                        c.beginPath();
+                        c.strokeStyle = "cyan";
+                        c.lineWidth = 2;
+                        c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 60,0,Math.PI*2,true);
                         c.stroke();
-                        c.beginPath(); 
-                        c.strokeStyle = "cyan"; 
-                        c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true); 
-                        c.stroke(); 
-                        
+                        c.beginPath();
+                        c.strokeStyle = "cyan";
+                        c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true);
+                        c.stroke();
                     } else {
-                        c.beginPath(); 
+                        c.beginPath();
                         c.strokeStyle = "red";
                         c.lineWidth = "6";
-                        c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true); 
+                        c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true);
                         c.stroke();
                     }
                 }
-            } 
+            }
         }
 
         function makeBullet(x, y, angle, velx, vely, name) {
@@ -223,18 +162,14 @@
         }
 
         function setupCanvas() {
-            
             canvas = document.createElement( 'canvas' );
             c = canvas.getContext( '2d' );
             container = document.createElement( 'div' );
             container.className = "container";
             container.id = "board"
-
             document.body.appendChild( container );
             container.appendChild(canvas);  
-
-            resetCanvas(); 
-            
+            resetCanvas();
             c.strokeStyle = "#ffffff";
             c.lineWidth =2; 
         }
@@ -250,7 +185,6 @@
                 }
                 if (data.action == "moving") {
                     if (!players.containsKey(data.name)) {
-                        //console.log("adding " + data.name)
                         var ship = new ShipMoving(halfWidth, halfHeight)
                         ship.updateName(data.name)
                         var r = (Math.floor(Math.random()*50) + 205).toString(16)
@@ -267,24 +201,7 @@
                         ship.pos.y = data.y;
                     }
                 }
-                // ici
-                /*if (data.action == "fire") {
-                    makeBullet(data.x, data.y, data.angle, data.velx, data.vely, data.name)
-                }
-                if (data.action == "shoot") {
-                    if (data.disabled == "true") {
-                        playerBullets.remove(data.id)
-                    } else {
-                        if (!playerBullets.containsKey(data.id)) {
-                            var bullet = new Bullet(data.x, data.y, 0); 
-                            playerBullets.put(data.id, bullet) 
-                        } 
-                        var bullet = playerBullets.get(data.id);
-                        bullet.reset(data.x, data.y, 0)
-                    }
-                }*/
                 if (data.action == "kill") {
-                    //console.log("killing " + data.name)
                     var ship = players.get(data.name)
                     ship.around( ship.pos.x, ship.pos.y )
                 }
@@ -294,7 +211,6 @@
             }
             bulletsSource.onmessage = function ( event ) {
                 var data = JSON.parse(event.data)
-                //console.log(data);
                 if (data.action == "shoot") {
                     if (data.disabled == "true") {
                         playerBullets.remove(data.id)
@@ -315,7 +231,6 @@
                 e.preventDefault();
                 $.post('@routes.Application.restartGame()', function(data) {console.log('game restarted');});
             });
-            //$.post('@routes.Application.defineCanvasSize()', { width: canvas.width, height: canvas.height })
         })
         </script>
     </body>
