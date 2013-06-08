@@ -83,14 +83,11 @@
             var shots = 0;
             var maxShot = 150;
 
-            //var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket    
             var socket// = new WS( "ws://" + location.host + "/mobile/@username/stream " )
-
             var x = 0
             var y = 0
             var status = "alive"
             var waiting = true
-
             var websocketCapable = true
             if (!window.WebSocket) {
                 websocketCapable = false
@@ -116,21 +113,15 @@
                     }
                 }
             }
-
             setupCanvas();
-
-            var mouseX, mouseY, 
+            var mouseX, mouseY,
                 // is this running in a touch capable environment?
                 touchable = 'createTouch' in document,
                 touches = [], // array of touch vectors
                 ship = new ShipMoving(halfWidth, halfHeight)
                 bullets = [],
                 spareBullets = [];
-                
-                
-            setInterval(draw, 1000/50); 
-
-
+            setInterval(draw, 1000/50);
             if(touchable) {
                 canvas.addEventListener( 'touchstart', onTouchStart, false );
                 canvas.addEventListener( 'touchmove', onTouchMove, false );
@@ -141,19 +132,14 @@
             }
 
             function resetCanvas (e) {  
-                // resize the canvas - but remember - this clears the canvas too. 
-                canvas.width = window.innerWidth + 100; 
+                canvas.width = window.innerWidth + 100;
                 canvas.height = window.innerHeight + 100;
-                
-                halfWidth = canvas.width/2; 
+                halfWidth = canvas.width/2;
                 halfHeight = canvas.height/2;
-                
-                //make sure we scroll to the top left. 
-                window.scrollTo(0,0); 
+                window.scrollTo(0,0);
             }
 
             function draw() {
-              
                 c.clearRect(0,0,canvas.width, canvas.height);
                 c.lineCap = 'square'
                 c.font = "12pt Calibri";
@@ -190,10 +176,8 @@
                 }
                 c.closePath(); 
                 c.stroke();
-
                 //socket.send( JSON.stringify( { action: "moving", name: "@username", controlx: x, controly: y } ) )
                 move(x, y)
-
                 var fromX = halfWidth - 15
                 var fromY = 27
                 var height = canvas.height - 10
@@ -209,17 +193,12 @@
                 c.lineTo(fromX,fromY);  
                 c.closePath();  
                 c.stroke();
-
-                c.fillStyle = "00CCFF";  
+                c.fillStyle = "00CCFF";
                 var value = (height * (maxShot - shots)) / maxShot;
                 c.fillRect (fromX, fromY + (height - value), 30, height - (height - value));
-
                 if(touchable && (status != "dead")) {
-                
                     for(var i=0; i<touches.length; i++) {
-                        
-                        var touch = touches[i]; 
-                        
+                        var touch = touches[i];
                         if(touch.identifier == leftTouchID){
                             c.beginPath(); 
                             c.strokeStyle = "blue"; 
@@ -313,18 +292,14 @@
             }
 
             function setupCanvas() {
-                
                 canvas = document.createElement( 'canvas' );
                 c = canvas.getContext( '2d' );
                 container = document.createElement( 'div' );
                 container.className = "container";
                 container.id = "pad"
-
                 document.body.appendChild( container );
                 container.appendChild(canvas);  
-
-                resetCanvas(); 
-                
+                resetCanvas();
                 c.strokeStyle = "#ffffff";
                 c.lineWidth =2; 
             }
