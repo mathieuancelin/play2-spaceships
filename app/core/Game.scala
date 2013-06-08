@@ -99,12 +99,14 @@ class Game( enumerator: Enumerator[JsValue], channel: Channel[JsValue] ) {
         pushWaitingList( Application.playersChannel )
         if (out.isDefined && activePlayers.isEmpty() && waitingPlayers.isEmpty()) {
             Application.currentGame = None
+            Application.playersChannel.push(Json.obj("action" -> "nowinner"))
             "nowinner"
         } else 
         if (out.isDefined && activePlayers.size == 1 && waitingPlayers.isEmpty()) {
             val p = activePlayers.entrySet().iterator().next().getValue()
             p.channel.push( JsObject( JList( "action" -> JsString( "win" ) ) ) )
             Application.currentGame = None
+            Application.playersChannel.push(Json.obj("action" -> "winner", "username" -> p.username))
             "winner:" + p.username
         } else { 
             "continue"

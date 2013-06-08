@@ -9,6 +9,7 @@
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0," /> 
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/board.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/mustache.js")" type="text/javascript"></script>
@@ -16,37 +17,6 @@
         <script src="@routes.Assets.at("javascripts/Vector2.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/ShipMovingTouch.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/BulletSebs.js")" type="text/javascript"></script>
-
-        <style type="text/css"> 
-    
-            * {
-              -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
-              -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
-              -webkit-tap-highlight-color: rgba(0,0,0,0); 
-              -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
-              -webkit-tap-highlight-color: rgba(0,0,0,0); 
-            }
-            body {
-                background-color: #000000;
-                color: #fff;
-                margin: 0px;
-            }
-            .back {
-                background-image: -webkit-radial-gradient(600px 300px, circle, #778, #011 60%);
-                background-image: -moz-radial-gradient(600px 300px, circle, #444, #000 60%);
-                background-image: -o-radial-gradient(600px 300px, circle, #444, #000 60%);
-                background-image: radial-gradient(600px 300px, circle, #444, #000 60%);
-            }
-            canvas {
-                display:block; 
-                position:absolute; 
-            }
-            .container {
-                width:auto;
-                text-align:center;
-                background-color:#ff0000;
-            }
-        </style>
     </head>
     <body class="back">
         <div id="topbar">
@@ -60,9 +30,10 @@
                 <div id="monitoring"></div>
             </div>
         </div>
-        <div id="win" style="display:none;">
-            <h1></h1>
-            <br/><br/><a class="btn btn-primary" href="@routes.Application.index()">New game</a>
+        <div id="win">
+            <h1>The winner is</h1>
+            <h1 id="player">Anonymous</h1>
+            <br/><br/><a class="btn btn-primary pull-right" href="@routes.Application.index()">New game</a>
         </div>
     <script>
 
@@ -235,6 +206,20 @@
                 }
                 if (data.action == "waitinglist") {
                     waiting = data.players
+                }
+                if (data.action == "winner") {
+                    players.clear();
+                    playerBullets.clear();
+                    $('#player').html(data.username);
+                    $('#win').show();
+                }
+                if (data.action == "nowinner") {
+                    players.clear();
+                    playerBullets.clear();
+                    $('#win h1').hide();
+                    $('#player').html('There is no winner :( ');
+                    $('#player').show();
+                    $('#win').show();
                 }
             }
             bulletsSource.onmessage = function ( event ) {
